@@ -16,7 +16,7 @@ public class Server {
 
 	// method to start the server
 	public void startServer() {
-
+		System.out.println("Server is started waiting for the client to connect!!.");
 		try {
 			while (!serverSocket.isClosed()) {
 				Socket socket = serverSocket.accept();
@@ -31,7 +31,6 @@ public class Server {
 			// TODO: handle exception
 			System.err.println("Not able to connect with the client!");
 			e.printStackTrace();
-		} finally {
 			stopServer();
 		}
 	}
