@@ -1,10 +1,10 @@
 package com.deepanshu.ClientServerChat;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,9 +13,9 @@ public class ClientHandler implements Runnable {
 
 	private Socket socket;
 	public static List<ClientHandler> clientHandler = new ArrayList<>(); // to add the multiple client in this
-	private BufferedReader bufferedReader;
-	private BufferedWriter bufferedWriter;
-//	private String message;
+	private DataInputStream dataInputStream;
+	private DataOutputStream dataOutputStream;
+
 
 	/* constructor */
 	public ClientHandler(Socket socket) {
@@ -23,27 +23,45 @@ public class ClientHandler implements Runnable {
 		try {
 
 			this.socket = socket;
-			this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+			this.dataInputStream = new DataInputStream((socket.getInputStream()));
+			this.dataOutputStream = new DataOutputStream((socket.getOutputStream()));
 			clientHandler.add(this);
 			System.out.println("client added to the arrayist ");
 
 		} catch (IOException e) {
 			System.err.println("unable to recieve or sent the message.. ");
-			closeAllConnection(socket, bufferedReader, bufferedWriter);
+			closeAllConnection(socket, dataInputStream, dataOutputStream);
 			e.printStackTrace();
 		}
 
 	}
 
-	/* this method will close all the open connection */
-	public void closeAllConnection(Socket socket, BufferedReader bufferReader, BufferedWriter bufferedWriter) {
-		try {
-			if (bufferedWriter != null) {
-				bufferedWriter.close();
+	@Override
+	public void run() {
+		int messageFromClient;
+		while (socket.isConnected()) {
+			try {
+				messageFromClient = dataInputStream.readInt();
+				System.out.println("message from the client is : " + messageFromClient);
+				/* Switch case to handle the and perform the client request */
+
+			} catch (IOException e) {
+				System.err.println("now able to read the message from the client :");
+				e.printStackTrace();
+				closeAllConnection(socket, dataInputStream, dataOutputStream);
 			}
-			if (bufferedReader != null) {
-				bufferedReader.close();
+		}
+
+	}
+
+	/* this method will close all the open connection */
+	public void closeAllConnection(Socket socket, DataInputStream dataInputStream, DataOutputStream dataOutputStream) {
+		try {
+			if (dataOutputStream != null) {
+				dataOutputStream.close();
+			}
+			if (dataInputStream != null) {
+				dataInputStream.close();
 			}
 			if (socket != null) {
 				socket.close();
@@ -51,23 +69,6 @@ public class ClientHandler implements Runnable {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-
-	@Override
-	public void run() {
-		String messageFromClient;
-		while (socket.isConnected()) {
-			try {
-				messageFromClient = bufferedReader.readLine();
-				System.out.println("message from the client is : " + messageFromClient);
-
-			} catch (IOException e) {
-				System.err.println("now able to read the message from the client :");
-				e.printStackTrace();
-				closeAllConnection(socket, bufferedReader, bufferedWriter);
-			}
-		}
-
 	}
 
 }
