@@ -1,11 +1,12 @@
 package com.deepanshu.ClientServerChat;
 
-
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-
+import java.io.InputStreamReader;
 import java.net.Socket;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,9 +14,7 @@ public class ClientHandler implements Runnable {
 
 	private Socket socket;
 	public static List<ClientHandler> clientHandler = new ArrayList<>(); // to add the multiple client in this
-	private DataInputStream dataInputStream;
-	private DataOutputStream dataOutputStream;
-
+	private BufferedReader bufferReader;
 
 	/* constructor */
 	public ClientHandler(Socket socket) {
@@ -23,14 +22,13 @@ public class ClientHandler implements Runnable {
 		try {
 
 			this.socket = socket;
-			this.dataInputStream = new DataInputStream((socket.getInputStream()));
-			this.dataOutputStream = new DataOutputStream((socket.getOutputStream()));
+			this.bufferReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			clientHandler.add(this);
 			System.out.println("client added to the arrayist ");
 
 		} catch (IOException e) {
 			System.err.println("unable to recieve or sent the message.. ");
-			closeAllConnection(socket, dataInputStream, dataOutputStream);
+			// closeAllConnection(socket, dataInputStream, dataOutputStream);
 			e.printStackTrace();
 		}
 
@@ -38,18 +36,34 @@ public class ClientHandler implements Runnable {
 
 	@Override
 	public void run() {
-		int messageFromClient;
-		while (socket.isConnected()) {
-			try {
-				messageFromClient = dataInputStream.readInt();
-				System.out.println("message from the client is : " + messageFromClient);
-				/* Switch case to handle the and perform the client request */
 
+		try {
+			readDataFromClient();
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("not able to read the data ");
+		}finally {
+			try {
+				bufferReader.close();
 			} catch (IOException e) {
-				System.err.println("now able to read the message from the client :");
+				// TODO Auto-generated catch block
 				e.printStackTrace();
-				closeAllConnection(socket, dataInputStream, dataOutputStream);
 			}
+		}
+
+	}
+
+	public void readDataFromClient() {
+		String messageFromClient;
+		try {
+			while ((messageFromClient = bufferReader.readLine()) != null) {
+				System.out.println("inside while loop");
+				System.out.println("message is:" + messageFromClient);
+			}
+
+		} catch (IOException e) {
+			System.out.println("message not Recieve from the client");
+			e.printStackTrace();
 		}
 
 	}
