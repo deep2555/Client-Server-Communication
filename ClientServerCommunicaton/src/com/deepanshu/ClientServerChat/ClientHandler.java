@@ -1,12 +1,11 @@
 package com.deepanshu.ClientServerChat;
 
 import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.Socket;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +14,7 @@ public class ClientHandler implements Runnable {
 	private Socket socket;
 	public static List<ClientHandler> clientHandler = new ArrayList<>(); // to add the multiple client in this
 	private BufferedReader bufferReader;
+	private BufferedWriter bufferWriter;
 
 	/* constructor */
 	public ClientHandler(Socket socket) {
@@ -23,13 +23,14 @@ public class ClientHandler implements Runnable {
 
 			this.socket = socket;
 			this.bufferReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			this.bufferWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 			clientHandler.add(this);
 			System.out.println("client added to the arrayist ");
 
 		} catch (IOException e) {
 			System.err.println("unable to recieve or sent the message.. ");
-			// closeAllConnection(socket, dataInputStream, dataOutputStream);
 			e.printStackTrace();
+			
 		}
 
 	}
@@ -42,11 +43,13 @@ public class ClientHandler implements Runnable {
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println("not able to read the data ");
-		}finally {
+		} finally {
 			try {
 				bufferReader.close();
+				bufferWriter.close();
+				socket.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
+				
 				e.printStackTrace();
 			}
 		}
@@ -54,11 +57,21 @@ public class ClientHandler implements Runnable {
 	}
 
 	public void readDataFromClient() {
-		String messageFromClient;
+		int messageFromClient;
 		try {
-			while ((messageFromClient = bufferReader.readLine()) != null) {
+			while ((messageFromClient = Integer.parseInt(bufferReader.readLine())) != -1) {
 				System.out.println("inside while loop");
 				System.out.println("message is:" + messageFromClient);
+
+				switch (messageFromClient) {
+				case 1:
+					String messageTOClient = "your request is recieved";
+					
+					bufferWriter.write(messageTOClient);
+					bufferWriter.newLine();
+					bufferWriter.flush();
+
+				}
 			}
 
 		} catch (IOException e) {
@@ -66,23 +79,6 @@ public class ClientHandler implements Runnable {
 			e.printStackTrace();
 		}
 
-	}
-
-	/* this method will close all the open connection */
-	public void closeAllConnection(Socket socket, DataInputStream dataInputStream, DataOutputStream dataOutputStream) {
-		try {
-			if (dataOutputStream != null) {
-				dataOutputStream.close();
-			}
-			if (dataInputStream != null) {
-				dataInputStream.close();
-			}
-			if (socket != null) {
-				socket.close();
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 	}
 
 }
