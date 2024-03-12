@@ -8,6 +8,7 @@ import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class ClientHandler implements Runnable {
 
@@ -15,6 +16,12 @@ public class ClientHandler implements Runnable {
 	public static List<ClientHandler> clientHandler = new ArrayList<>(); // to add the multiple client in this
 	private BufferedReader bufferReader;
 	private BufferedWriter bufferWriter;
+	public static final String OPERATION = "What operation you want to perform:" + "1) Chat With AI Bot:"
+			+ "2) File Transfer and Access from the System:" + "3) File Download From the Server:"
+			+ "4) Read and Write data From the File: ";
+	public static final String USERNAME = "Enter the user name To continue : ";
+	Scanner sc;
+	String messageReceive = null;
 
 	/* constructor */
 	public ClientHandler(Socket socket) {
@@ -25,12 +32,14 @@ public class ClientHandler implements Runnable {
 			this.bufferReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			this.bufferWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 			clientHandler.add(this);
+			sc = new Scanner(System.in);
 			System.out.println("client added to the arrayist ");
 
 		} catch (IOException e) {
 			System.err.println("unable to recieve or sent the message.. ");
 			e.printStackTrace();
-			
+			System.out.println(e.getMessage());
+
 		}
 
 	}
@@ -39,7 +48,8 @@ public class ClientHandler implements Runnable {
 	public void run() {
 
 		try {
-			readDataFromClient();
+			sendCall(OPERATION);
+			readCall();
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println("not able to read the data ");
@@ -49,36 +59,50 @@ public class ClientHandler implements Runnable {
 				bufferWriter.close();
 				socket.close();
 			} catch (IOException e) {
-				
+				System.out.println(e);
 				e.printStackTrace();
 			}
 		}
 
 	}
 
-	public void readDataFromClient() {
-		int messageFromClient;
+	/* this */
+	public void sendCall(String message) {
 		try {
-			while ((messageFromClient = Integer.parseInt(bufferReader.readLine())) != -1) {
-				System.out.println("inside while loop");
-				System.out.println("message is:" + messageFromClient);
-
-				switch (messageFromClient) {
-				case 1:
-					String messageTOClient = "your request is recieved";
-					
-					bufferWriter.write(messageTOClient);
-					bufferWriter.newLine();
-					bufferWriter.flush();
-
-				}
-			}
+			bufferWriter.write(message);
+			bufferWriter.newLine();
+			bufferWriter.flush();
 
 		} catch (IOException e) {
-			System.out.println("message not Recieve from the client");
 			e.printStackTrace();
+			System.out.println(e);
+		}
+	}
+
+	public void readCall() {
+		String messageReceive;
+		try {
+			while ((messageReceive = bufferReader.readLine()) != null) {
+				System.out.println("the message from the client is : " + messageReceive);
+				messageBasedOperation(messageReceive);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.out.println(e);
 		}
 
+	}
+
+	public void messageBasedOperation(String messageReceive2) {
+		
+		switch (messageReceive2) {
+		case "1":
+			sendCall(USERNAME);
+			readCall();
+			
+			
+		}
+		
 	}
 
 }

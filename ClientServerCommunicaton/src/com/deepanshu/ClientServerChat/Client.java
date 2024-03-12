@@ -12,8 +12,9 @@ public class Client {
 
 	private Socket socket;
 	private String message;
-	private static BufferedWriter bufferedWriter;
-	private static BufferedReader bufferedReader;
+	private BufferedWriter bufferedWriter;
+	private BufferedReader bufferedReader;
+
 	Scanner sc;
 
 	public Client(Socket socket) {
@@ -22,7 +23,7 @@ public class Client {
 			this.socket = socket;
 			this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 			this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
+			sc = new Scanner(System.in);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -30,59 +31,56 @@ public class Client {
 	}
 
 	public static void main(String[] args) {
+		Client client = null;
 		try {
 			Socket socket = new Socket("localhost", 1234);
-			Client client = new Client(socket);
-			client.sendMessageToServer();
-			client.recieveMessageFromServer();
+			client = new Client(socket);
+			client.readCall();
 
 		} catch (IOException e) {
 			System.err.println("not able to connect with the server");
 			e.printStackTrace();
+			System.out.println(e.getMessage());
 
-		} finally {
-			try {
-				bufferedWriter.close();
-				bufferedReader.close();
-
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 		}
 
 	}
 
-	/* methods for sending the Request message to server */
-	public void sendMessageToServer() {
+	public void readCall() {
+		String messageReceive;
 		try {
-			sc = new Scanner(System.in);
-			System.out.println("Select the option to proceed \n " + "1) Chat with AI Bot:\n"
-					+ "2) Access and Download File from the Internet:\n " + "3) Read and Write data from the file:\n");
-			message = sc.nextLine();
+			while ((messageReceive = bufferedReader.readLine()) != null) {
+				System.out.println("the message from the server is : " + messageReceive);
+				messageBasedOperations(messageReceive);
+
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.out.println(e);
+		}
+
+	}
+
+	public void sendCall(String message) {
+		try {
 			bufferedWriter.write(message);
 			bufferedWriter.newLine();
 			bufferedWriter.flush();
 
 		} catch (IOException e) {
-			System.err.println("not able to write the message :");
 			e.printStackTrace();
-			sc.close();
 		}
 	}
 
-	/* method for the receiving revert message from the server */
-	public void recieveMessageFromServer() {
-		String messageFromserver;
-		try {
-			while ((messageFromserver = bufferedReader.readLine()) != null) {
-				System.out.println("inside while loop message from server");
-				System.out.println("message is:" + messageFromserver);
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
+	public void messageBasedOperations(String messageReceive) {
+		if (messageReceive.equals(ClientHandler.OPERATION)) {
+			int sendMessage = sc.nextInt();
+			sendCall(Integer.toString(sendMessage));
+		}
+		if (messageReceive.equals(ClientHandler.USERNAME)) {
+			String sendUserName = sc.next();
+			sendCall(sendUserName);
 		}
 
 	}
-
 }
