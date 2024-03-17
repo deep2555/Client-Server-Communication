@@ -41,6 +41,7 @@ public class Client {
 			System.err.println("not able to connect with the server");
 			e.printStackTrace();
 			System.out.println(e.getMessage());
+			
 
 		}
 
