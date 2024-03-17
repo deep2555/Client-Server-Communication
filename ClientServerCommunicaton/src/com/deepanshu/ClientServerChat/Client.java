@@ -14,6 +14,7 @@ public class Client {
 	private String message;
 	private BufferedWriter bufferedWriter;
 	private BufferedReader bufferedReader;
+	
 
 	Scanner sc;
 
