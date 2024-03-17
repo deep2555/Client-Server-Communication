@@ -1,0 +1,1 @@
+The Online Chat Application is a real-time messaging platform designed to facilitate communication between users over the internet. The application allows users to send text messages, images, and files to individuals or groups in a chat-like
